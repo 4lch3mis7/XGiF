@@ -1,6 +1,6 @@
 # XGiF (Exposed Git Finder)
 ## About XGiF
-XGiF (Exposed Git Finder) is a python tool designed to find .git folder exposed due to server misconfiguration. Such misconfiguration in a web application can lead to source code disclosure.
+XGiF (Exposed Git Finder) is a python tool designed to find .git folder exposed due to server misconfiguration. Such misconfiguration in a web application can lead to source code disclosure and invite other serious vulnerabilities.
 
 It check for the following files and folders:
 - `/.git/`
