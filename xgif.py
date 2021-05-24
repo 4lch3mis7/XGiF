@@ -1,7 +1,6 @@
 """
 Find Source Code Disclosure Vulnerability by exposed .git/
 """
-
 import requests
 from threading import Thread
 import argparse
@@ -13,10 +12,10 @@ colorama.init()
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--domain', help="Check a single domain")
-    parser.add_argument('-D', '--domains', help="Check domains form file")
-    parser.add_argument('-t', '--threads', help="Number of threads", type=int)
-    parser.add_argument('-o', '--output', help="Output file")
+    parser.add_argument('-d', '--domain', help="Domain name to check for .git exposure")
+    parser.add_argument('-D', '--domains', help="Domain names form a file")
+    parser.add_argument('-t', '--threads', help="Number of threads to use (default=40)", type=int)
+    # parser.add_argument('-o', '--output', help="Output file to save the results")
     parser.add_argument('-v', '--verbose', help="Enable Verbosity and display refused connections", nargs='?', default=False)
     return parser.parse_args()
 
