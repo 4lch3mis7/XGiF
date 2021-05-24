@@ -4,11 +4,34 @@ Find Source Code Disclosure Vulnerability by exposed .git/
 import requests
 from threading import Thread
 import argparse
-import colorama
-from colorama import Fore, Back, Style, Cursor
 import time
 
-colorama.init()
+class Color:        
+    class Fore:
+        RED = '\x1b[31m'   
+        WHITE = '\x1b[37m'
+        YELLOW = '\x1b[33m'
+        GREEN = '\x1b[32m'
+    class Back:
+        YELLOW = '\x1b[43m'
+    class Style:
+        RESET_ALL = '\x1b[0m'
+            
+
+
+BANNER = """
+        ___      ___________     __________
+        \  \    /  /  ____  \ __|   _______|
+         \  \  /  /  /    \__|__|  |
+          \  \/  /  /   _____ __|  |_____
+           |    |  |   |__   |  |   _____|
+          /  /\  \  \     |  |  |  |
+         /  /  \  \  \____|  |  |  |
+        /__/    \__\_________|__|__|
+        
+        # Exposed Git Finder by Prasant 
+        (https://github.com/prasant_paudel/xgif.git)
+"""
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -37,16 +60,16 @@ def __display_resp(resp:str, verbose=False):
     if not resp:
         return None
     if 'Exploitable' in resp:
-        print(f"{Fore.RED}{Back.YELLOW}{resp}{Style.RESET_ALL}")
+        print(f"{Color.Fore.RED}{Color.Back.YELLOW}{resp}{Color.Style.RESET_ALL}")
         time.sleep(0.1)
     elif 'Status: 200' in resp:
-        print(f"{Fore.GREEN}{resp}{Style.RESET_ALL}")
+        print(f"{Color.Fore.GREEN}{resp}{Color.Style.RESET_ALL}")
         time.sleep(0.1)
     elif '403 Forbidden' in resp:
-        print(f"{Fore.YELLOW}{resp}{Style.RESET_ALL}")
+        print(f"{Color.Fore.YELLOW}{resp}{Color.Style.RESET_ALL}")
         time.sleep(0.1)
     elif verbose and 'Connection Error' in resp:
-        print(f"{Fore.RED}{resp}{Style.RESET_ALL}")
+        print(f"{Color.Fore.RED}{resp}{Color.Style.RESET_ALL}")
         time.sleep(0.1)
 
 def check_git_exposure(domain:str, verbose) -> str:
@@ -75,8 +98,10 @@ def enum_domains(domains, verbose:bool=False):
         __display_resp(resp)
 
 def main():
+    print(Color.Fore.RED + BANNER + Color.Style.RESET_ALL)
     args = parse_args()
     verbose = (args.verbose or args.verbose == None)
+    domains = list()
     if args.domain:
         check_git_exposure(args.domain.split('://')[-1].strip().strip('/'), verbose)
         exit()
