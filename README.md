@@ -9,13 +9,16 @@ It check for the following files and folders:
 - `/.git/logs/HEAD`
 - `/.git/index`
 
+## Screenshots
+![XGiF](https://github.com/prasant-paudel/XGiF/raw/main/xgif.png "XGiF Screenshot")
+
 ## Installation
 ```
 git clone https://github.com/prasant-paudel/XGiF.git
 ```
 
 ## Dependencies
-XGiF depends upon the `request`, `argparse` and `colorama` python modules.
+XGiF depends upon the `request` and `argparse` python modules.
 
 These dependencies can be installed using the requirements file:
 
