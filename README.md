@@ -10,7 +10,7 @@ It check for the following files and folders:
 - `/.git/index`
 
 ## Screenshots
-![XGiF](https://github.com/prasant-paudel/XGiF/raw/main/xgif.png "XGiF Screenshot")
+![XGiF](https://github.com/prasant-paudel/XGiF/raw/main/screenshot.png "XGiF Screenshot")
 
 ## Installation
 ```
@@ -18,17 +18,17 @@ git clone https://github.com/prasant-paudel/XGiF.git
 ```
 
 ## Dependencies
-XGiF depends upon the `request` and `argparse` python modules.
+XGiF depends upon the `request`, `argparse` and `sublist3r` python modules.
 
 These dependencies can be installed using the requirements file:
 
 - Installation on Windows:
 ```
-c:\python27\python.exe -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 - Installation on Linux
 ```
-sudo pip install -r requirements.txt
+sudo pip3 install -r requirements.txt
 ```
 ## Usage
 Short  from | Long form | Description
@@ -37,6 +37,8 @@ Short  from | Long form | Description
 -D | --domains | Check domains from file
 -t | --threads | Number of threads to use (default=40)
 -v | --verbose | Enable Verbosity
+-s | --sublist3r | Enumerate subdomains using sublis3r (works with -d)
+-st | --sublis3r-threads | Number of threads to be used by sublist3r process (default=40)
 -h | --help | Show the help message and exit.
 
 ## Examples
@@ -46,11 +48,17 @@ Single Domain:
 or 
 - `python xgif.py -d http://example.com/`
 
+Use **sublist3r** module to find and check subdomains too
+- `python xgif.py -d example.com --sublist3r`
+
 Multiple domains from a file:
 - `python xgif.py -D domains.txt`
 
 Define custom number of threads to use:
 - `python xgif.py -D domains.txt -t 40`
 
+## Credits
+* [Ahmed Aboul-Ela](https://github.com/aboul3la/Sublist3r) - The subdomain enumeration was based on his script **sublist3r**. 
+
 ## Version
-**Current Version is 1.0**
+**Current Version is 1.1**
