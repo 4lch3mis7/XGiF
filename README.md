@@ -59,6 +59,7 @@ Define custom number of threads to use:
 
 ## Credits
 * [Ahmed Aboul-Ela](https://github.com/aboul3la/Sublist3r) - The subdomain enumeration was based on his script **sublist3r**. 
+* [Captain Nick Licifer*](https://github.com/naryal2580/dore) - The multithreading and chunkify function was taken from his project **dore**. 
 
 ## Version
 **Current Version is 1.1**
