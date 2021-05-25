@@ -45,6 +45,7 @@ def parse_args():
     return parser.parse_args()
 
 def __check_url(url):
+    print(url, end='\r')
     try:
         with requests.get(url, allow_redirects=False) as resp:
             if resp.status_code == 200:
@@ -93,7 +94,7 @@ def get_subdomains(domain:str)-> list:
     engines = None
     return sublist3r.main(domain, no_threads, savefile, ports, silent, verbose, enable_bruteforce, engines)
 
-def check_git_exposure(domain, verbose):
+def check_git_exposure(domain):
     # Check /.git
     __display_resp(__check_url(f"http://{domain.strip('.').strip()}/.git"))
     # Check /.git/config
@@ -112,9 +113,9 @@ def chunkify(iterable, thread_count=40):
     return [iterable[_:_+chunksize] for _ in range(0, len(iterable), chunksize)]
 
 
-def enum_domains(domains, verbose:bool=False):
+def enum_domains(domains):
     for domain in domains:
-        check_git_exposure(domain, verbose)
+        check_git_exposure(domain)
         
 def main():
     print(Color.Fore.RED + BANNER + Color.Style.RESET_ALL)
@@ -130,6 +131,7 @@ def main():
     if args.domain:
         if args.sublist3r or args.sublist3r == None:
             domains = get_subdomains(args.domain.strip())
+            print(f"{len(domains)} subdomains found. Checking subdomains for .git exposure.")
         else:
             check_git_exposure(args.domain.split('://')[-1].strip().strip('/'))
             exit()
