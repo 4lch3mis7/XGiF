@@ -45,7 +45,7 @@ def parse_args():
     return parser.parse_args()
 
 def __check_url(url):
-    print(url, end='\r')
+    print(url + ' ' * 20, end='\r')
     try:
         with requests.get(url, allow_redirects=False) as resp:
             if resp.status_code == 200:
