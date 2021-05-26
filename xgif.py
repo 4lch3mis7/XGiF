@@ -33,6 +33,7 @@ BANNER = """
         (https://github.com/prasant_paudel/xgif.git)
 """
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--domain', help="Domain name to check for .git exposure")
@@ -44,24 +45,6 @@ def parse_args():
     parser.add_argument('-st', '--sublist3r-threads', help="Number of threads to be used by sublist3r process (default=40)")
     return parser.parse_args()
 
-def __check_url(url):
-    print(url + ' ' * 20, end='\r')
-    try:
-        with requests.get(url, allow_redirects=False) as resp:
-            if resp.status_code == 200:
-                if 'directory listing' in resp.text.lower() or 'index of' in resp.text.lower():
-                    return f"{url} --> *** Potentially Exploitable ***"
-                else:
-                    return f"{url} --> Status: 200 (Check manually)"
-            if resp.status_code == 403:
-                return f"{url} --> 403 Forbidden (Exists but restricted)"
-    except KeyboardInterrupt:
-        exit(0)
-    except requests.exceptions.ConnectionError:
-        return f"{url} --> Connection Error"
-    except UnicodeError:
-        return f"{url} --> Unicode Error"
-    return ''
 
 def __display_resp(resp:str):
     global args
@@ -70,16 +53,17 @@ def __display_resp(resp:str):
         return None
     if 'Exploitable' in resp:
         print(f"{Color.Fore.RED}{Color.Back.YELLOW}{resp}{Color.Style.RESET_ALL}")
-        time.sleep(0.1)
-    elif 'Status: 200' in resp:
+        time.sleep(0.01)
+    elif 'fishy' in resp:
         print(f"{Color.Fore.GREEN}{resp}{Color.Style.RESET_ALL}")
-        time.sleep(0.1)
-    elif '403 Forbidden' in resp:
+        time.sleep(0.01)
+    elif args.verbose and '403 Forbidden' in resp:
         print(f"{Color.Fore.YELLOW}{resp}{Color.Style.RESET_ALL}")
-        time.sleep(0.1)
+        time.sleep(0.01)
     elif args.verbose and 'Error' in resp:
         print(f"{Color.Fore.RED}{resp}{Color.Style.RESET_ALL}")
-        time.sleep(0.1)
+        time.sleep(0.01)
+
 
 def get_subdomains(domain:str)-> list:
     print(f"Sublist3r Mode Enabled. Looking for subdomains. [{domain}]")
@@ -94,66 +78,121 @@ def get_subdomains(domain:str)-> list:
     engines = None
     return sublist3r.main(domain, no_threads, savefile, ports, silent, verbose, enable_bruteforce, engines)
 
-def check_git_exposure(domain):
-    # Check /.git
-    __display_resp(__check_url(f"http://{domain.strip('.').strip()}/.git"))
-    # Check /.git/config
-    __display_resp(__check_url(f"http://{domain.strip('.').strip()}/.git/config"))
-    # Check /.git/HEAD
-    __display_resp(__check_url(f"http://{domain.strip('.').strip()}/.git/HEAD"))
-    # Check /.git/logs/HEAD
-    __display_resp(__check_url(f"http://{domain.strip('.').strip()}/.git/logs/HEAD"))
-    # Check /.git/index
-    __display_resp(__check_url(f"http://{domain.strip('.').strip()}/.git/index"))
 
-def chunkify(iterable, thread_count=40):
+def __check_git(domain) -> None:
+    try:
+        with requests.get(f"http://{domain}/.git", allow_redirects=False) as resp:
+            if resp.status_code == 200 :
+                if ('directory listing' or 'index of') in resp.text.lower():
+                    __display_resp(f"http://{domain}/.git --> *** Potentially Exploitable ***")
+                else:
+                    if len(resp.content) != __check_head(domain):
+                        __display_resp(f"http://{domain}/.git --> Something fishy there, check manually.")
+
+            elif resp.status_code == 403:
+                __display_resp(f"http://{domain}/.git --> 403 Forbidden (Exists but restricted)")
+                __check_head(domain)
+            elif resp.status_code == 404:
+                __display_resp(f"http://{domain}/.git --> 404 Page Not Found")
+    except requests.exceptions.ConnectionError:
+        return f"http://{domain}/.git --> Connection Error"
+    except requests.exceptions.InvalidURL:
+        print('Error: Invalid host ', domain)
+        pass
+    except UnicodeError:
+        return f"http://{domain}/.git --> Unicode Error"
+
+
+def __check_head(domain) -> int:  # returns content length if 200
+    try:
+        with requests.get(f'http://{domain}/.git/HEAD', allow_redirects=False) as resp:
+            if resp.status_code == 200:
+                if ('ref: refs/heads' or 'ref: refs\heads') in resp.text:
+                    __display_resp(f"http://{domain}/.git/HEAD --> *** Potentially Exploitable ***")
+                elif len(resp.content) != __check_config(domain):
+                    __display_resp(f"http://{domain}/.git/HEAD --> Something fishy there, check manually.")
+                return len(resp.content)
+            if resp.status_code == 403:
+                __display_resp(f"http://{domain}/.git/HEAD --> 403 Forbidden (Exists but restricted)")
+                __check_config(domain)
+            if resp.status_code == 404:
+                __display_resp(f"http://{domain}/.git/HEAD --> 404 Page Not Found")
+    except requests.exceptions.ConnectionError:
+        return f"http://{domain}/.git/HEAD --> Connection Error"
+    except UnicodeError:
+        return f"http://{domain}/.git/HEAD --> Unicode Error"
+
+    return 0
+
+
+def __check_config(domain) -> int:  # returns content length if 200
+    try:
+        with requests.get(f'http://{domain}/.git/config', allow_redirects=False) as resp:
+            if resp.status_code == 200:
+                if ('[core' or '[diff' or '[branch') in resp.text:
+                    __display_resp(f"http://{domain}/.git/config --> *** Potentially Exploitable ***")
+                return len(resp.content)
+            if resp.status_code == 403:
+                __display_resp(f"http://{domain}/.git/HEAD --> 403 Forbidden (Exists but restricted)")
+    except requests.exceptions.ConnectionError:
+        return f"http://{domain}/.git/config --> Connection Error"
+    except UnicodeError:
+        return f"http://{domain}/.git/config --> Unicode Error"
+    return 0
+
+
+def chunkify(iterable, thread_count):
     chunksize = int(len(iterable) / thread_count)
     if chunksize <= 1:
         return [[_] for _ in iterable]
     return [iterable[_:_+chunksize] for _ in range(0, len(iterable), chunksize)]
 
-
+c = 0
 def enum_domains(domains):
+    global c
     for domain in domains:
-        check_git_exposure(domain)
-        
+        c+=1
+        print([c], domain, ' '*20, end='\r')
+        __check_git(domain)
+
 def main():
     print(Color.Fore.RED + BANNER + Color.Style.RESET_ALL)
     global args
     args = parse_args()
     args.verbose = (args.verbose or args.verbose == None)
     if not args.threads:
-        args.threads = 40
+        args.threads = 100
     if not args.sublist3r_threads:
         args.sublist3r_threads = 40
 
     domains = list()
     if args.domain:
         if args.sublist3r or args.sublist3r == None:
-            domains = get_subdomains(args.domain.strip())
-            print(f"{len(domains)} subdomains found. Checking subdomains for .git exposure.")
+            domains = get_subdomains(args.domain.strip()) + [args.domain.split('://')[-1].strip('.').strip('/').strip()]
+            domains = list(set(domains))
+            print(f"Total {len(domains)} subdomains found by sublist3r. Checking subdomains for .git exposure.")
         else:
-            check_git_exposure(args.domain.split('://')[-1].strip().strip('/'))
+            __check_git(args.domain.split('://')[-1].strip('.').strip('/').strip())
             exit()
     elif args.domains:
         with open(args.domains) as f:
-            domains = list(set([_.split('://')[-1].strip().strip('/') for _ in f.readlines() if _.strip()]))    
+            domains = list(set([_.split('://')[-1].strip('.').strip('/').strip() for _ in f.readlines() if _.strip()]))
+            print(f"Total {len(domains)} domains found in the file. Checking for .git exposure.")
 
+    # Multi threading
     _threads = []
     chunks = tuple(chunkify(domains, args.threads))
     for chunk in chunks:
         thread = Thread(target=enum_domains, args=(chunk,), daemon=True)
         thread.start()
         _threads.append(thread)
-    for thread in _threads[:-1]:
+    
+    for thread in _threads:
         thread.join()
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        exit()
+    main()
         
 
 
