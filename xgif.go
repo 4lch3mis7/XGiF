@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -32,16 +33,26 @@ const banner = `
 	$$  /\$$\ $$ |  $$ |$$ |$$ |      
 	$$ /  $$ |\$$$$$$  |$$ |$$ |      
 	\__|  \__| \______/ \__|\__|      
+
+	XGiF (eXposed Git Finder)
+	https://github.com/prasant-paudel/xgif
 `
 
 const help = `
-Usage: xgif [FILE]
+Usage: xgif [OPTIONS]
 
-Example: xgif target_urls.txt
+OPTIONS:
+	-t		Target URL
+	-T		List of targets [File]
+	-v		Verbose mode
+
+Example: xgif -t https://github.com -vv
+Example: xgif -T target_urls.txt -v
+
 `
 
 func printLegends() {
-	fmt.Println(colorCyan + "---:: Legends ::---" + colorReset)
+	fmt.Println(colorCyan + "----: Legends :----" + colorReset)
 	fmt.Println(colorRed + bgYellow + "Potentially Exploitable" + colorReset)
 	fmt.Println(colorRed + "Connection Error" + colorReset)
 	fmt.Println(colorYellow + "Other HTTP Errors" + colorReset)
@@ -49,18 +60,42 @@ func printLegends() {
 	fmt.Println()
 }
 
+var target string
+var targets_path string
+var verbose bool
+var veryVerbose bool
+
+func argParse() {
+	flag.StringVar(&target, "t", "", "Target URL")
+	flag.StringVar(&targets_path, "T", "", "List of targets [File]")
+	flag.BoolVar(&verbose, "v", false, "Verbose mode")
+	flag.BoolVar(&veryVerbose, "vv", false, "Very verbose mode")
+
+	flag.Parse()
+
+	fmt.Println(target, targets_path, verbose)
+}
+
 func main() {
+	argParse()
 	fmt.Println(colorRed + banner + colorReset)
 	start := time.Now()
 	ch := make(chan string)
 
 	var targets []string
+	var _targets []string
 
-	if len(os.Args) == 2 {
+	if targets_path != "" {
+		_targets = readLines(targets_path)
+	}
+	if target != "" {
+		_targets = append(_targets, strings.TrimSpace(target))
+	}
+
+	if target == "" && targets_path == "" {
+		fmt.Printf(colorCyan + help + colorReset)
+	} else {
 		printLegends()
-
-		_targets := readLines(os.Args[1])
-
 		for _, ln := range _targets {
 			ln = strings.TrimSpace(ln)
 			if len(ln) != 0 && contains(targets, ln) == false {
@@ -75,19 +110,19 @@ func main() {
 		for range targets {
 			fmt.Print(<-ch)
 		}
-	} else {
-		fmt.Printf(colorCyan + help + colorReset)
+		fmt.Println(colorCyan+"Targets tested: ", len(targets), colorReset)
+		fmt.Printf(colorCyan+"Time elapsed  : %.2fs\n"+colorReset, time.Since(start).Seconds())
 	}
 
-	fmt.Println(colorCyan+"Targets tested: ", len(targets), colorReset)
-	fmt.Printf(colorCyan+"Time elapsed  : %.2fs\n"+colorReset, time.Since(start).Seconds())
 }
 
 func checkGitConfig(baseUrl string, ch chan<- string) {
 	url := baseUrl + "/.git/config"
 	resp := getReq(url)
-	if resp == "Connection Error" {
-		ch <- fmt.Sprintln(colorRed+"[Connection Error]", url+colorReset)
+	if resp == "Connection Error" && veryVerbose {
+		ch <- fmt.Sprintln(colorRed + "[Connection Error] " + url + colorReset)
+	} else if resp[:7] == "Status:" && verbose {
+		ch <- fmt.Sprintln(colorYellow + resp + " " + url + colorReset)
 	} else if strings.Contains(resp, "[core]") {
 		ch <- fmt.Sprintln(bgYellow+colorRed+url, " *** Potentially Exploitable *** "+colorReset)
 	} else {
