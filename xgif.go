@@ -42,13 +42,14 @@ const help = `
 Usage: xgif [OPTIONS]
 
 OPTIONS:
-	-t		Target URL
-	-T		List of targets [File]
-	-v		Verbose mode
+ -t		Target URL
+ -T		List of targets [File]
+ -v		Verbose mode
+ -o		Output file
 
 Example: xgif -t https://github.com -vv
 Example: xgif -T target_urls.txt -v
-
+Example: xgif -T target_urls.txt -o output.txt
 `
 
 func printLegends() {
@@ -64,12 +65,14 @@ var target string
 var targets_path string
 var verbose bool
 var veryVerbose bool
+var outputFile string
 
 func argParse() {
 	flag.StringVar(&target, "t", "", "Target URL")
 	flag.StringVar(&targets_path, "T", "", "List of targets [File]")
 	flag.BoolVar(&verbose, "v", false, "Verbose mode")
 	flag.BoolVar(&veryVerbose, "vv", false, "Very verbose mode")
+	flag.StringVar(&outputFile, "o", "", "Output file")
 
 	flag.Parse()
 
@@ -109,6 +112,7 @@ func main() {
 
 		for range targets {
 			fmt.Print(<-ch)
+
 		}
 		fmt.Println(colorCyan+"Targets tested: ", len(targets), colorReset)
 		fmt.Printf(colorCyan+"Time elapsed  : %.2fs\n"+colorReset, time.Since(start).Seconds())
@@ -121,7 +125,7 @@ func checkGitConfig(baseUrl string, ch chan<- string) {
 	resp := getReq(url)
 	if resp == "Connection Error" && veryVerbose {
 		ch <- fmt.Sprintln(colorRed + "[Connection Error] " + url + colorReset)
-	} else if resp[:7] == "Status:" && verbose {
+	} else if strings.Contains(resp, "Status:") && verbose {
 		ch <- fmt.Sprintln(colorYellow + resp + " " + url + colorReset)
 	} else if strings.Contains(resp, "[core]") {
 		ch <- fmt.Sprintln(bgYellow+colorRed+url, " *** Potentially Exploitable *** "+colorReset)
@@ -165,9 +169,13 @@ func readLines(filename string) []string {
 }
 
 func getBaseUrl(str string) string {
-	x := strings.Split(str, "//")
-	y := x[0] + "//" + strings.Split(x[1], "/")[0]
-	return strings.TrimSpace(y)
+	if !strings.Contains(str, "//") {
+		return "http://" + str
+	}
+
+	schema := strings.Split(str, "://")[0]
+	domain := strings.Split(strings.Split(str, "://")[1], "/")[0]
+	return fmt.Sprint(schema + "://" + domain)
 }
 
 func contains(arr []string, e string) bool {

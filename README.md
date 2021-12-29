@@ -11,13 +11,24 @@ git clone https://github.com/prasant-paudel/XGiF.git
 ```
 
 ## Usage
+Flag | Description 
+-----|-------------
+-t | Target URL 
+-T | List of target URLs
+-v | Enable verbose mode (default=false)
+-o | Output to a file
+
+## Examples
 ```sh
-xgif [FILE]
+xgif -t https://example.com
 ```
-## Example
 ```sh
-xgif target_urls.txt
+xgif -T target_urls.txt
+```
+```sh
+xgif -T target_urls.txt -v -o output_file.txt
 ```
 
+
 ## Version
-**Current Version is 1.0**
+**Current Version is 1.1**
