@@ -29,6 +29,5 @@ xgif -T target_urls.txt
 xgif -T target_urls.txt -v -o output_file.txt
 ```
 
-
 ## Version
 **Current Version is 1.1**
