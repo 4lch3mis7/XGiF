@@ -7,7 +7,7 @@ XGiF (Exposed Git Finder) is tool written in Go designed to find .git folder exp
 
 ## Installation
 ```
-git clone https://github.com/prasant-paudel/XGiF.git
+go install github.com/prasant-paudel/xgif@latest
 ```
 
 ## Usage
