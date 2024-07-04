@@ -3,7 +3,7 @@
 XGiF (Exposed Git Finder) is tool written in Go designed to find .git folder exposed due to server misconfiguration. Such misconfiguration in a web application can lead to source code disclosure and invite other serious vulnerabilities.
 
 ## Screenshots
-![XGiF](https://github.com/4lch3mis7XGiF/raw/main/screenshot.png "XGiF Screenshot")
+![XGiF](https://github.com/4lch3mis7/XGiF/raw/main/screenshot.png "XGiF Screenshot")
 
 ## Installation
 ```
