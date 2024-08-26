@@ -10,7 +10,7 @@ It check for the following files and folders:
 - `/.git/index`
 
 ## Screenshots
-![XGiF](https://github.com/prasant-paudel/XGiF/raw/main/screenshot.png "XGiF Screenshot")
+![XGiF](https://github.com/4lch3mis7/XGiF/raw/main/screenshot.png "XGiF Screenshot")
 
 ## Installation
 ```
